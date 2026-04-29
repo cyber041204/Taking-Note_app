@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Notes App</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1e1e2e">
+<link rel="apple-touch-icon" href="10.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<style>
+/* Offline-safe: using system font stack instead of Google Fonts */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+  background-color: #f0f4f8;
+  background-image: url('0240dbc791523072799a4414ae04ef77.png');
+  background-size: 110%;
+  background-position: center;
+  background-attachment: fixed;
+  color: #2d3748;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background-image 0.4s ease-in-out, background-size 0.4s ease-in-out;
+}
+
+/* Top-right button group (no overlap) */
+.top-right-group {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  z-index: 1000;
+}
+
+/* Install App Button */
+.install-btn {
+  background: rgba(234, 179, 8, 0.9);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+  transition: all 0.3s ease;
+  width: auto;
+  display: none; /* Hidden by default */
+}
+
+.install-btn:hover {
+  transform: translateY(-2px);
+  background: rgba(202, 138, 4, 0.95);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+}
+
+/* Change BG Button */
+.change-bg-btn {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: #2d3748;
+  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.12);
+  transition: all 0.3s ease;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.change-bg-btn:hover {
+  transform: scale(1.1);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+}
+
+/* Container */
+.container {
+  width: 100%;
+  max-width: 440px;
+  padding: 20px;
+}
+
+/* Card */
+.card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(15px);
+  padding: 35px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Title */
+.title {
+  text-align: center;
+  margin-bottom: 25px;
+  font-weight: 600;
+  color: #ca8a04;
+  font-size: 1.6rem;
+}
+
+/* Inputs */
+input, textarea {
+  width: 100%;
+  padding: 14px 16px;
+  margin: 10px 0 20px 0;
+  border-radius: 12px;
+  border: 1px solid #cbd5e0;
+  background: rgba(255, 255, 255, 0.9);
+  color: #2d3748;
+  font-size: 15px;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+input:focus, textarea:focus {
+  border-color: #eab308;
+  box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.15);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* Buttons */
+button {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  background: #eab308;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(234, 179, 8, 0.2);
+}
+
+button:hover {
+  background: #ca8a04;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(234, 179, 8, 0.3);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+/* Notes */
+.note {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 16px;
+  border-radius: 14px;
+  margin-top: 15px;
+  font-size: 15px;
+  line-height: 1.5;
+  border: 1px solid #cbd5e0;
+  transition: transform 0.2s;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.note:hover {
+  transform: translateY(-2px);
+}
+
+.note h3 {
+  margin-bottom: 8px;
+  color: #ca8a04;
+  font-size: 1.1rem;
+}
+
+.note div {
+  word-wrap: break-word;
+  color: #2d3748;
+}
+
+.note small {
+  display: block;
+  margin-top: 8px;
+  color: #718096;
+  font-size: 12px;
+}
+
+.note-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.note button {
+  background: transparent;
+  color: #e53e3e;
+  box-shadow: none;
+  padding: 6px 14px;
+  width: auto;
+  border: 1px solid #e53e3e;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-top: 0;
+}
+
+.note button:hover {
+  background: #e53e3e;
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(229, 62, 62, 0.2);
+  transform: translateY(-1px);
+}
+
+.note .edit-btn {
+  color: #2b6cb0;
+  border-color: #2b6cb0;
+}
+
+.note .edit-btn:hover {
+  background: #2b6cb0;
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(43, 108, 176, 0.2);
+  transform: translateY(-1px);
+}
+
+/* Delete All Button */
+.delete-all-btn {
+  background: transparent;
+  color: #e53e3e;
+  border: 1px solid #e53e3e;
+  margin-top: 15px;
+  box-shadow: none;
+}
+
+.delete-all-btn:hover {
+  background: rgba(229, 62, 62, 0.1);
+  color: #e53e3e;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Logout */
+.logout {
+  background: transparent;
+  border: 1px solid #718096;
+  color: #718096;
+  margin-top: 25px;
+  box-shadow: none;
+}
+
+.logout:hover {
+  background: rgba(113, 128, 150, 0.1);
+  color: #2d3748;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Link */
+.link {
+  text-align: center;
+  margin-top: 15px;
+  font-size: 14px;
+  color: #718096;
+  cursor: pointer;
+}
+
+.link span {
+  color: #ca8a04;
+  font-weight: 600;
+}
+
+.link span:hover {
+  text-decoration: underline;
+}
+
+/* Hidden */
+.hidden { display: none !important; }
+
+/* iOS Modal */
+.ios-modal {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(15px);
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  padding: 25px 20px;
+  box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+  z-index: 2000;
+  text-align: center;
+  transform: translateY(100%);
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.ios-modal.show {
+  transform: translateY(0);
+}
+
+.ios-modal h3 {
+  margin-bottom: 15px;
+  color: #2d3748;
+}
+
+.ios-modal p {
+  color: #4a5568;
+  font-size: 15px;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.ios-modal span.icon {
+  display: inline-block;
+  background: #f1f5f9;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-weight: bold;
+  border: 1px solid #cbd5e1;
+}
+
+.ios-modal button {
+  background: #e2e8f0;
+  color: #4a5568;
+  box-shadow: none;
+}
+.ios-modal button:hover {
+  background: #cbd5e1;
+  color: #2d3748;
+  transform: none;
+}
+
+/* Edit Modal */
+.edit-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(4px);
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.edit-modal-overlay.show {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.edit-modal {
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 30px 25px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  transform: translateY(20px) scale(0.97);
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.edit-modal-overlay.show .edit-modal {
+  transform: translateY(0) scale(1);
+}
+
+.edit-modal h3 {
+  color: #ca8a04;
+  font-size: 1.1rem;
+  margin-bottom: 15px;
+}
+
+.edit-modal .modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.edit-modal .modal-actions button {
+  flex: 1;
+}
+
+.edit-modal .cancel-btn {
+  background: #e2e8f0;
+  color: #4a5568;
+  box-shadow: none;
+}
+
+.edit-modal .cancel-btn:hover {
+  background: #cbd5e1;
+  color: #2d3748;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Responsive */
+@media(max-width:480px){
+  .container { padding: 10px; }
+  .card { padding: 20px 15px; border-radius: 15px; }
+  .title { font-size: 1.4rem; margin-bottom: 20px; }
+  input, textarea, button { font-size: 14px; padding: 12px; }
+}
+
+/* Footer */
+.dev-footer {
+  width: fit-content;
+  margin: 30px auto 0;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+  color: #ca8a04;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+</style>
+
+</head>
+<body>
+
+<div class="top-right-group">
+  <button class="change-bg-btn" onclick="changeBackground()" title="Change Background (Offline)">
+    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+      <circle cx="8.5" cy="8.5" r="1.5"></circle>
+      <polyline points="21 15 16 10 5 21"></polyline>
+    </svg>
+  </button>
+  <button id="installAppBtn" class="install-btn" title="Install App">📥 Install App</button>
+</div>
+
+<div class="container">
+
+<!-- LOGIN -->
+<div id="loginPage" class="card">
+  <h2 class="title">Note Taking App</h2>
+
+  <input type="text" id="loginUser" placeholder="Username">
+  <input type="password" id="loginPass" placeholder="Password">
+
+  <button onclick="login()">Log in</button>
+
+  <div class="link" onclick="showRegister()">
+    Don't have an account? <span>Register</span>
+  </div>
+</div>
+
+<!-- REGISTER -->
+<div id="registerPage" class="card hidden">
+  <h2 class="title">Create Account</h2>
+
+  <input type="text" id="regUser" placeholder="Username">
+  <input type="password" id="regPass" placeholder="Password">
+
+  <button onclick="register()">Register</button>
+
+  <div class="link" onclick="showLogin()">
+    Already have an account? <span>Login</span>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="card hidden">
+  <h2 class="title" id="welcomeMessage">My Notes</h2>
+
+  <textarea id="noteInput" placeholder="Write Your Note Mga ka lambat.."></textarea>
+  <button onclick="addNote()">Add Note</button>
+
+  <div id="notes"></div>
+
+  <button class="delete-all-btn hidden" id="deleteAllBtn" onclick="deleteAllNotes()">🗑️ Delete All Notes</button>
+  <button class="logout" onclick="logout()">Logout</button>
+</div>
+
+  <div class="dev-footer">DEVELOPED BY CYBERXEL (2026)</div>
+</div>
+
+<!-- iOS Install Modal -->
+<div id="iosInstallModal" class="ios-modal">
+  <h3>Install on iOS</h3>
+  <p>To install this app on your iPhone or iPad, tap the <span class="icon">Share</span> icon below, then select <span class="icon">Add to Home Screen</span>.</p>
+  <button onclick="closeIosModal()">Got it!</button>
+</div>
+
+<!-- Edit Note Modal -->
+<div id="editModalOverlay" class="edit-modal-overlay" onclick="handleOverlayClick(event)">
+  <div class="edit-modal">
+    <h3>✏️ Edit Note</h3>
+    <input type="text" id="editTheme" placeholder="Title / Theme">
+    <textarea id="editContent" placeholder="Note content..." style="min-height:120px"></textarea>
+    <div class="modal-actions">
+      <button class="cancel-btn" onclick="closeEditModal()">Cancel</button>
+      <button onclick="saveEdit()">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+
+const bgImages = [
+  "0240dbc791523072799a4414ae04ef77.png",
+  "0cdb7da3b16e3a5b6dce9172471ab8d9.png",
+  "175df0ef78a7950195051cbe8b802c48.png",
+  "1e2bb1d7c565ec6626e72f4ddafa9f9a.png",
+  "21ee239ece1797f8588653784f967190.png",
+  "2577e0adbe7b99dab7de43f23576d1f4.png",
+  "268176928f6cd2ad9e5d0d9786b6cb84.png",
+  "36d0f29fbd09ab66855af5f4f179451c.png",
+  "42356b0aa5c2975a2148e3be47252938.png",
+  "4596bd677adbbca6a893f04cccd57da7.png",
+  "4a6b4a1055ed05f953235e857d62ecfd.png",
+  "506fc569e045c910dd2727bcdb855584.png",
+  "5493084f547ac1bea40ea83c42795111.png",
+  "6ae26ed6171fce956cc50e9364f2b3cd.png",
+  "74a0c9fef193240e047ee6d98c639b69.png",
+  "832d0dd97f5157cf3e78b8df13b95a90.png",
+  "887692acb5d782f4d5b091804a2dbb68.png",
+  "8d0f922727b1e71c7a3623b77156f75f.png",
+  "9be0cc1ac09bae7c855829f15da47b9c.png",
+  "a603ffb97fa99d8fcede7d5487c4d9ab.png",
+  "ab77a1ad858f943db04305a8c615e979.png",
+  "ba6eec9f7685709ab61de1c0e1f9c668.png",
+  "c2739b7e41a70ccd497ece854aa4266d.png",
+  "d5ed58be6bff9d2eba9bce90e3cc4afc.png",
+  "dabe474c4a5cf5f9d72205c6c991fd1d.png",
+  "ea2bf6879c8daee539868405ce34b88c.png"
+];
+let currentBgIndex = 0;
+
+function changeBackground() {
+  currentBgIndex = (currentBgIndex + 1) % bgImages.length;
+  document.body.style.backgroundImage = `url('${bgImages[currentBgIndex]}')`;
+  localStorage.setItem('preferred_bg', bgImages[currentBgIndex]);
+}
+
+window.addEventListener('load', () => {
+  let savedBg = localStorage.getItem('preferred_bg');
+  if(savedBg) {
+    document.body.style.backgroundImage = `url('${savedBg}')`;
+    currentBgIndex = bgImages.indexOf(savedBg) !== -1 ? bgImages.indexOf(savedBg) : 0;
+  }
+});
+
+let currentUser = null;
+
+/* SWITCH */
+function showRegister(){
+  loginPage.classList.add('hidden');
+  registerPage.classList.remove('hidden');
+}
+
+function showLogin(){
+  registerPage.classList.add('hidden');
+  loginPage.classList.remove('hidden');
+}
+
+/* REGISTER */
+function register(){
+  let u = regUser.value.trim();
+  let p = regPass.value.trim();
+
+  if(!u || !p){
+    alert("Please fill all fields");
+    return;
+  }
+
+  if(localStorage.getItem(u)){
+    alert("User already exists");
+    return;
+  }
+
+  localStorage.setItem(u, p);
+  alert("Account created! Please log in.");
+  
+  regUser.value = "";
+  regPass.value = "";
+  
+  showLogin();
+}
+
+/* LOGIN */
+function login(){
+  let u = loginUser.value.trim();
+  let p = loginPass.value.trim();
+
+  if(localStorage.getItem(u) === p && u !== ""){
+    currentUser = u;
+
+    document.getElementById("welcomeMessage").innerText = `Welcome ${currentUser} Pag Take note nah!!!😁😎`;
+
+    loginPage.classList.add('hidden');
+    dashboard.classList.remove('hidden');
+
+    loadNotes();
+
+    loginUser.value="";
+    loginPass.value="";
+  }else{
+    alert("Invalid username or password");
+  }
+}
+
+/* ADD NOTE WITH DATE & TIME */
+function addNote(){
+  let fullText = document.getElementById("noteInput").value.trim();
+
+  if(!fullText) return;
+
+  // Split the text into lines
+  let lines = fullText.split('\n');
+  let theme = lines[0]; // First line is the theme
+  let text = lines.slice(1).join('\n'); // The rest is the verse
+
+  let notes = JSON.parse(localStorage.getItem(currentUser+"_notes")||"[]");
+
+  let now = new Date();
+  let dateTime = now.toLocaleString(undefined, {
+    year:'numeric',
+    month:'short',
+    day:'numeric',
+    hour:'2-digit',
+    minute:'2-digit'
+  });
+
+  notes.push({
+    theme: theme,
+    content: text,
+    time: dateTime
+  });
+
+  localStorage.setItem(currentUser+"_notes", JSON.stringify(notes));
+
+  document.getElementById("noteInput").value="";
+
+  loadNotes();
+}
+
+/* LOAD NOTES */
+function loadNotes(){
+  let notes = JSON.parse(localStorage.getItem(currentUser+"_notes")||"[]");
+
+  let notesContainer = document.getElementById("notes");
+  notesContainer.innerHTML="";
+
+  let deleteAllBtn = document.getElementById("deleteAllBtn");
+  if(notes.length > 0) {
+    deleteAllBtn.classList.remove("hidden");
+  } else {
+    deleteAllBtn.classList.add("hidden");
+  }
+
+  for(let i = notes.length - 1; i >= 0; i--) {
+    let n = notes[i];
+    let div = document.createElement("div");
+    div.className="note";
+
+    let themeHTML = n.theme ? `<h3>${n.theme}</h3>` : "";
+    let contentHTML = n.content ? `<div>${n.content.replace(/\n/g, '<br>')}</div>` : "";
+
+    div.innerHTML = `
+      ${themeHTML}
+      ${contentHTML}
+      <small>${n.time}</small>
+      <div class="note-actions">
+        <button class="edit-btn" onclick="openEditModal(${i})">✏️ Edit</button>
+        <button onclick="deleteNote(${i})">🗑️ Delete</button>
+      </div>
+    `;
+
+    notesContainer.appendChild(div);
+  }
+}
+
+/* EDIT NOTE */
+let editingIndex = -1;
+
+function openEditModal(i) {
+  let notes = JSON.parse(localStorage.getItem(currentUser+"_notes")||"[]");
+  let n = notes[i];
+  editingIndex = i;
+
+  document.getElementById('editTheme').value = n.theme || '';
+  document.getElementById('editContent').value = n.content || '';
+  document.getElementById('editModalOverlay').classList.add('show');
+}
+
+function saveEdit() {
+  if(editingIndex < 0) return;
+  let notes = JSON.parse(localStorage.getItem(currentUser+"_notes")||"[]");
+  notes[editingIndex].theme = document.getElementById('editTheme').value.trim();
+  notes[editingIndex].content = document.getElementById('editContent').value.trim();
+  let now = new Date();
+  notes[editingIndex].time = now.toLocaleString(undefined,{
+    year:'numeric', month:'short', day:'numeric',
+    hour:'2-digit', minute:'2-digit'
+  }) + ' (edited)';
+  localStorage.setItem(currentUser+"_notes", JSON.stringify(notes));
+  closeEditModal();
+  loadNotes();
+}
+
+function closeEditModal() {
+  document.getElementById('editModalOverlay').classList.remove('show');
+  editingIndex = -1;
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('editModalOverlay')) {
+    closeEditModal();
+  }
+}
+
+/* DELETE */
+function deleteNote(i){
+  if(confirm("Are you sure you want to delete this note?")) {
+    let notes = JSON.parse(localStorage.getItem(currentUser+"_notes"));
+    notes.splice(i,1);
+    localStorage.setItem(currentUser+"_notes", JSON.stringify(notes));
+    loadNotes();
+  }
+}
+
+/* DELETE ALL */
+function deleteAllNotes(){
+  if(confirm("Are you sure you want to delete ALL your notes? This cannot be undone!")) {
+    localStorage.removeItem(currentUser+"_notes");
+    loadNotes();
+  }
+}
+
+/* LOGOUT */
+function logout(){
+  currentUser = null;
+
+  dashboard.classList.add('hidden');
+  loginPage.classList.remove('hidden');
+}
+
+/* PWA INSTALL PROMPT */
+let deferredPrompt;
+const installAppBtn = document.getElementById('installAppBtn');
+const iosInstallModal = document.getElementById('iosInstallModal');
+
+// Detect iOS and standalone mode
+const isIos = () => {
+  const userAgent = window.navigator.userAgent.toLowerCase();
+  return /iphone|ipad|ipod/.test(userAgent);
+};
+const isInStandaloneMode = () => ('standalone' in window.navigator) && (window.navigator.standalone);
+
+if (isIos() && !isInStandaloneMode()) {
+  // Show the install button for iOS
+  installAppBtn.style.display = 'block';
+  installAppBtn.addEventListener('click', () => {
+    iosInstallModal.classList.add('show');
+  });
+} else {
+  // Standard PWA behavior for Android/Desktop
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installAppBtn.style.display = 'block';
+  });
+
+  installAppBtn.addEventListener('click', async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log(`User response to the install prompt: ${outcome}`);
+      deferredPrompt = null;
+      installAppBtn.style.display = 'none';
+    }
+  });
+
+  window.addEventListener('appinstalled', (evt) => {
+    console.log('App was installed');
+    installAppBtn.style.display = 'none';
+  });
+}
+
+function closeIosModal() {
+  iosInstallModal.classList.remove('show');
+}
+
+/* SERVICE WORKER FOR PWA */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').then(registration => {
+      console.log('ServiceWorker registered');
+    }).catch(error => {
+      console.log('ServiceWorker registration failed');
+    });
+  });
+}
+
+</script>
+
+</body>
+</html>

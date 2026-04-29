@@ -1,0 +1,17 @@
+{
+  "name": "Note Taking App",
+  "short_name": "Notes",
+  "description": "A beautiful, dark-themed note taking app",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#1e1e2e",
+  "theme_color": "#1e1e2e",
+  "icons": [
+    {
+      "src": "10.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
